@@ -1,5 +1,14 @@
 # MBOX → EML → PST Toolkit
 
+> **This is a fork of [madsonrick/mbox-to-pst-toolkit](https://github.com/madsonrick/mbox-to-pst-toolkit) with the following bug fixes:**
+>
+> - **PST naming** (`eml_to_pst_import.py`): `--base-name gmail` now produces `gmail.pst` as expected. Previously the first PST was always suffixed `_part1` (e.g. `gmail_part1.pst`). Overflow parts are named `gmail_part2.pst` etc.; year-split follows the same pattern (`gmail_2023.pst` → `gmail_2023_part2.pst`).
+> - **Flush data loss** (`eml_to_pst_import.py`): After a `--flush-every` reattach the router's internal store/root references were not updated, causing all subsequent items to be written to the now-detached (closed) PST — silent data loss. Fixed by syncing router state after each reattach.
+> - **Subject `Header` crash** (`mbox_to_eml_exporter.py`): Encoded subject headers returned a `Header` object instead of a plain string, causing a `TypeError` crash. Fixed with an explicit `str()` conversion.
+
+---
+
+
 Export large `.mbox` mailboxes into filesystem `.eml` files and import them into Outlook **.pst** archives — with year/month folder layouts, filters, size limits, progress logs, and safe Outlook integration.
 
 - **Step 1:** `mbox_to_eml_exporter.py` → MBOX → EML  
