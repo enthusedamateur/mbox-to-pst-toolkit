@@ -59,7 +59,7 @@ def unique_eml_name(idx, msg):
     """Create a unique file name using Message-ID + index + time-based salt."""
     mid = (msg.get('Message-ID') or '').encode('utf-8', errors='ignore')
     h = hashlib.sha1(mid + str(idx).encode() + str(time.time_ns()).encode()).hexdigest()[:12]
-    subj = safe_name(msg.get('Subject') or 'no_subject')
+    subj = safe_name(str(msg.get('Subject') or 'no_subject'))
     return f"{subj}__{h}.eml"
 
 def fits_limits(count_in_dir, bytes_in_dir, max_per_dir, max_dir_bytes):

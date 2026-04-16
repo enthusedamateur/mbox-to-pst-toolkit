@@ -347,11 +347,14 @@ class PstRouter:
             self.target_bytes = max(1, total_bytes // self.splits)
 
     def _new_path(self, suffix):
-        return os.path.join(self.out_dir, f"{self.base}_{suffix}.pst")
+        if suffix:
+            return os.path.join(self.out_dir, f"{self.base}_{suffix}.pst")
+        return os.path.join(self.out_dir, f"{self.base}.pst")
 
     def _rotate_new(self):
         self.cur["part"] += 1
-        desired = self._new_path(f"part{self.cur['part']}")
+        suffix = "" if self.cur["part"] == 1 else f"part{self.cur['part']}"
+        desired = self._new_path(suffix)
         store, root, actual = create_or_attach_pst(self.ns, desired)
         self.cur.update({"store": store, "root": root, "path": actual, "bytes": 0})
         self.used_stores.append(store)
@@ -368,7 +371,7 @@ class PstRouter:
     def _ensure_year(self, year, incoming):
         s = self.year.get(year)
         if s is None:
-            desired = self._new_path(f"{year}_part1")
+            desired = self._new_path(f"{year}")
             store, root, actual = create_or_attach_pst(self.ns, desired)
             s = {"path": actual, "store": store, "root": root, "bytes": 0, "part": 1}
             self.year[year] = s
@@ -526,6 +529,10 @@ def main():
                 try:
                     ns.RemoveStore(root)
                     store, root, pst_path = create_or_attach_pst(ns, pst_path)
+                    if router.by_year:
+                        router.year[year].update({"store": store, "root": root, "path": pst_path})
+                    else:
+                        router.cur.update({"store": store, "root": root, "path": pst_path})
                     print(f"\n[FLUSH] Re-attached PST: {pst_path}")
                 except Exception as e:
                     print(f"\n[WARN] Periodic flush failed: {e}")
